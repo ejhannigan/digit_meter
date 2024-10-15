@@ -1,4 +1,14 @@
-Use computer to count your fingers and display the value with a hardware meter. This project uses ROS2 as the glue connecting software to hardware. 
+# Project Overview
+This is a small project that demonstrates a full pipeline from software to hardware using ROS2. It use machine vision to count fingers detected through a webcam, and the value is displayed by a servo meter. This project uses ROS2 as the glue connecting software to hardware.
+
+Sources:
+This project required the use of multiple tutorials from other authors. I have listed them below:
+ROS2 and micro-ros
+* https://medium.com/@markjdsmith/getting-oriented-to-ros2-uros-and-controlling-servos-with-esp32-3b99533ac986
+
+ROS2 and OpenCV and Mediapipe
+* [Enjoy Mechantronics Youtube Chanel: Hand Tracking with MediaPipe and OpenCV](https://www.youtube.com/watch?v=RRBXVu5UE-U)
+* [Automatic Addison Blog: Getting Started with OpenCV in ROS2](https://automaticaddison.com/getting-started-with-opencv-in-ros-2-foxy-fitzroy-python/
 
 This project requires the use of many outside libraries.
 
@@ -191,25 +201,33 @@ ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 180'
 We should see these messages on the first terminal and the motor should move. 
 
 
+# Use Webcam to Count Fingers on Your Hand, Conver to Angle, and Publish to Servo ROS2 Node
+## Create a ros2 webcam publisher
+
+## Create a digit counter that reads in the webcam image and counts fingers using mediapipe
 
 
 
 # Appendix:
-## hardware setup
+## Hardware Setup
 The hardware setup is fairly easy.
 
 Materials:
-ESP32
-SG90 servo
-3xAA battery holder
-jumper cables
-(optional) LEDs for debugging
+* ESP32
+* SG90 servo
+* 3xAA battery holder
+* breadboard
+* jumper cables
+* (optional) LEDs for debugging
 
 You need to power the SG90 servo with an outside power source. It draws too much power when commands are sent in quick succession and the board restarts. 
 Connect the orange signal cable to GPIO18 (or any [pwm compatible GPIO pin](https://lastminuteengineers.com/esp32-wroom-32-pinout-reference/) but you will have to change the pin in the set_servo_angle app)
 
+Connect the power and ground cables of the SG90 to battery power. 
 
-## micro_ros_setup downloads esp-idf for you
+Connect the ground pin of the ESP32 to the battery ground so everything shares the same ground.
+
+## micro_ros_setup Downloads esp-idf For You
 If you replace olimex-stm32-e407 with esp32 in the create_firmware_ws.sh step, the esp-idf library is downloaded for you in the 
 ```
 ros2 run micro_ros_setup create_firmware_ws.sh freertos esp32
@@ -221,12 +239,4 @@ ros2 run micro_ros_setup create_firmware_ws.sh freertos esp32
 And that respective [create.sh](https://github.com/micro-ROS/micro_ros_setup/blob/a146e83297af2d94b103e0ea73b392b5f9b68415/config/freertos/esp32/create.sh#L6C1-L6C79) downloads esp-idf for you:
 
 ![image](https://github.com/user-attachments/assets/ec5eb89d-2f6a-4c5c-b998-1b17b53e133d)
-
-
-
-Hardware:
-ESP32 dev board
-SG90 servo
-
-
 
