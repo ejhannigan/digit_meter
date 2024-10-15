@@ -3,6 +3,8 @@ This is a small project that demonstrates a full pipeline from software to hardw
 ![image](https://github.com/user-attachments/assets/426acc5e-81ed-48ec-9e64-58a6d6f202ab)
 
 
+[![YouTube](http://img.youtube.com/vi/AY0sV3dcSBo/hqdefault.jpg)](https://www.youtube.com/watch?v=AY0sV3dcSBo)
+[![YouTube](http://img.youtube.com/vi/PzvYlWTvSPE/hqdefault.jpg)](https://www.youtube.com/watch?v=PzvYlWTvSPE)
 
 It is split into three major sections:
 1. [Setting up ESP32 to run ROS2](#Setting-up-ESP32-to-run-ROS2)
