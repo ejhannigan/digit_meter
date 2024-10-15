@@ -1,25 +1,34 @@
 # Project Overview
-This is a small project that demonstrates a full pipeline from software to hardware using ROS2. It use machine vision to count fingers detected through a webcam, and the value is displayed by a servo meter. This project uses ROS2 as the glue connecting software to hardware.
+This is a small project that demonstrates a full pipeline from software to hardware using ROS2. It use machine vision to count fingers detected through a webcam, and the value is displayed by a servo meter. This project uses ROS2 as the glue connecting software to hardware. I have outlined the process for reproducing this project in intricate detail below. 
 
-Sources:
-This project required the use of multiple tutorials from other authors. I have listed them below:
+It is split into three major sections:
+1. [Setting up ESP32 to run ROS2](#Setting-up-ESP32-to-run-ROS2)
+2. [Setup ROS2 Webcam Publisher](#Create-a-ROS2-webcam-publisher)
+3. [Create a ROS2 digit to angle publisher](#Create-a-ROS2-digit-to-angle-publisher)
+4. [Appendix: Hardware Setup](#Hardware-Setup)
+
+## Sources:
+This project required the use of multiple tutorials from other authors. I want to make sure they get credit right up front!
+
 ROS2 and micro-ros
-* https://medium.com/@markjdsmith/getting-oriented-to-ros2-uros-and-controlling-servos-with-esp32-3b99533ac986
+* [Micro-ROS Official Tutorial](https://micro.ros.org/docs/tutorials/core/first_application_rtos/freertos/)
+* [Mark Smith's Tutorial: Controlling Servos with ESP32 and ROS2](https://medium.com/@markjdsmith/getting-oriented-to-ros2-uros-and-controlling-servos-with-esp32-3b99533ac986)
 
-ROS2 and OpenCV and Mediapipe
+ROS2 and OpenCV 
+* [Automatic Addison Blog: Getting Started with OpenCV in ROS2](https://automaticaddison.com/getting-started-with-opencv-in-ros-2-foxy-fitzroy-python/)
+
+Mediapipe
 * [Enjoy Mechantronics Youtube Chanel: Hand Tracking with MediaPipe and OpenCV](https://www.youtube.com/watch?v=RRBXVu5UE-U)
-* [Automatic Addison Blog: Getting Started with OpenCV in ROS2](https://automaticaddison.com/getting-started-with-opencv-in-ros-2-foxy-fitzroy-python/
 
-This project requires the use of many outside libraries.
 
 # Setting up ESP32 to run ROS2:
 The hardware setup has its own [appendix](#hardware-setup).
 
-To run ros on a micro controller, I used [micro-ROS](https://micro.ros.org/). I used (this micro-ROS tutorial)[https://micro.ros.org/docs/tutorials/core/first_application_rtos/freertos/] from the original documentation.
+To run ros on a micro controller, I used [micro-ROS](https://micro.ros.org/). I used (this micro-ROS tutorial)[https://micro.ros.org/docs/tutorials/core/first_application_rtos/freertos/) from the original documentation.
 
 Note: The documentation begins with a suggestion to try [another tutorial](https://medium.com/@SameerT009/connect-esp32-to-ros2-foxy-5f06e0cc64df) for the esp32. This tutorial is not perfect, and I lost a lot of time trying to install esp-idf separately. You DO NOT need to install esp-idf yourself. micro-ROS downloads the esp-idf library from github in the create firmware workspace step. I have included an [appendix](##micro_ros_setup-downloads-esp--idf-for-you) that walks you through the code to prove it to yourself. 
 
-I have copied the micro_ros_setup guide below with the exact commands I used for this project:
+I have copied and pasted the [micro_ros_setup guide](https://micro.ros.org/docs/tutorials/core/first_application_rtos/freertos/) below and replaced all of the commands with those I used for this project:
 
 ```bash
 # Source the ROS 2 installation
@@ -200,11 +209,11 @@ ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 180'
 
 We should see these messages on the first terminal and the motor should move. 
 
+# Create a ROS2 webcam publisher
+Use Webcam to Count Fingers on Your Hand -> Conver to Angle -> Publish to Servo ROS2 Node
 
-# Use Webcam to Count Fingers on Your Hand, Conver to Angle, and Publish to Servo ROS2 Node
-## Create a ros2 webcam publisher
-
-## Create a digit counter that reads in the webcam image and counts fingers using mediapipe
+# Create a ROS2 digit to angle publisher
+Create a digit counter that reads in the webcam image and counts fingers using mediapipe
 
 
 
