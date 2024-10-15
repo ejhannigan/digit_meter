@@ -284,7 +284,10 @@ We should see these messages on the first terminal and the motor should move.
 
 # Appendix:
 ## Hardware Setup
-The hardware setup is fairly easy.
+The hardware setup is fairly easy. [High res image on imgur](https://imgur.com/a/vision-based-digit-meter-hardware-YaJDMZr)
+
+![hardware_1](https://github.com/user-attachments/assets/250f5871-5d77-404c-86d6-e08a45e90ad9)
+![hardware_2](https://github.com/user-attachments/assets/17ae3cbc-9521-48db-b565-075caaea7d75)
 
 Materials:
 * ESP32
