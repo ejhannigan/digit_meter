@@ -3,9 +3,11 @@ Use computer to count your fingers and display the value with a hardware meter. 
 This project requires the use of many outside libraries.
 
 # Setting up ESP32 to run ROS2:
+The hardware setup has its own [appendix](#hardware-setup).
+
 To run ros on a micro controller, I used [micro-ROS](https://micro.ros.org/). I used (this micro-ROS tutorial)[https://micro.ros.org/docs/tutorials/core/first_application_rtos/freertos/] from the original documentation.
 
-Note: The documentation begins with a suggestion to try [another tutorial](https://medium.com/@SameerT009/connect-esp32-to-ros2-foxy-5f06e0cc64df) for the esp32. This tutorial is not perfect, and I lost a lot of time trying to install esp-idf separately. You DO NOT need to install esp-idf yourself. micro-ROS downloads the esp-idf library from github in the create firmware workspace step. I have included an [appendix](#appendix) that walks you through the code to prove it to yourself. 
+Note: The documentation begins with a suggestion to try [another tutorial](https://medium.com/@SameerT009/connect-esp32-to-ros2-foxy-5f06e0cc64df) for the esp32. This tutorial is not perfect, and I lost a lot of time trying to install esp-idf separately. You DO NOT need to install esp-idf yourself. micro-ROS downloads the esp-idf library from github in the create firmware workspace step. I have included an [appendix](##micro_ros_setup-downloads-esp--idf-for-you) that walks you through the code to prove it to yourself. 
 
 I have copied the micro_ros_setup guide below with the exact commands I used for this project:
 
@@ -121,35 +123,92 @@ Run the flash step:
 # Flash step
 ros2 run micro_ros_setup flash_firmware.sh
 ```
-{% include first_application_common/agent_creation.md %}
+## Creating the micro-ROS agent
 
-Then, depending on the selected transport and RTOS, the board connection to the agent may differ.
-In this tutorial, we're using the Olimex STM32-E407 Serial connection, for which the Olimex development board is
-connected to the computer using the usb to serial cable.
+The micro-ROS app is now ready to be connected to a micro-ROS agent to start talking with the rest of the ROS 2
+world.
+To do that, let's first of all create a micro-ROS agent:
 
-<img width="400" style="padding-right: 25px;" src="../imgs/5.jpg">
+```bash
+# Download micro-ROS-Agent packages
+ros2 run micro_ros_setup create_agent_ws.sh
+```
 
-***TIP:** Color codes are applicable to
-[this cable](https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-SERIAL-F/).
-Make sure to match Olimex Rx with Cable Tx and vice-versa. Remember GND!*
+Now, let's build the agent packages and, when this is done, source the installation:
 
-{% include first_application_common/run_app.md %}
+```bash
+# Build step
+ros2 run micro_ros_setup build_agent.sh
+source install/local_setup.bash
+```
 
-{% include first_application_common/test_app_rtos.md %}
+## Running the micro-ROS app
 
-This completes the First micro-ROS Application on FreeRTOS tutorial. Do you want to [go back](../) and try a different RTOS, i.e. NuttX or Zephyr?
+At this point, you have both the client and the agent correctly installed.
 
+To give micro-ROS access to the ROS 2 dataspace, you just need to run the agent:
 
+```bash
+# Run a micro-ROS agent
+ros2 run micro_ros_agent micro_ros_agent serial --dev [device]
+```
 
+***TIP:** you can use this command to find your serial device name: `ls /dev/ *`*
 
+In my case, it was /dev/ttyUSB0
+```bash
+ros2 run micro_ros_agent micro_ros_agent serial --dev /dev/ttyUSB0
+```
 
+## Testing the micro-ROS app
 
+At this point, the micro-ROS app is built and flashed and the board is connected to a micro-ROS agent.
+We now want to check that everything is working.
+
+We can manually send angles to the int32_subscriber and the motor should move accordingly. 
+Open two new command line.
+
+In the first:
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
+
+# Subscribe to micro-ROS int32 subsriber topic
+ros2 topic echo /microROS/int32_subscriber
+```
+
+In the second:
+And now, let's publish a `fake_ping` with ROS 2 from yet another command line:
+
+```bash
+source /opt/ros/$ROS_DISTRO/setup.bash
+
+# Send a few fake pings. The servo should move the appropriate angles
+ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 0'
+ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 90'
+ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 180'
+```
+
+We should see these messages on the first terminal and the motor should move. 
 
 
 
 
 
 # Appendix:
+## hardware setup
+The hardware setup is fairly easy.
+
+Materials:
+ESP32
+SG90 servo
+3xAA battery holder
+jumper cables
+(optional) LEDs for debugging
+
+You need to power the SG90 servo with an outside power source. It draws too much power when commands are sent in quick succession and the board restarts. 
+Connect the orange signal cable to GPIO18 (or any [pwm compatible GPIO pin](https://lastminuteengineers.com/esp32-wroom-32-pinout-reference/) but you will have to change the pin in the set_servo_angle app)
+
+
 ## micro_ros_setup downloads esp-idf for you
 If you replace olimex-stm32-e407 with esp32 in the create_firmware_ws.sh step, the esp-idf library is downloaded for you in the 
 ```
