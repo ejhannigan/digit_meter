@@ -1,5 +1,8 @@
 # Project Overview
 This is a small project that demonstrates a full pipeline from software to hardware using ROS2. It use machine vision to count fingers detected through a webcam, and the value is displayed by a servo meter. This project uses ROS2 as the glue connecting software to hardware. I have outlined the process for reproducing this project in intricate detail below. 
+![image](https://github.com/user-attachments/assets/426acc5e-81ed-48ec-9e64-58a6d6f202ab)
+
+
 
 It is split into three major sections:
 1. [Setting up ESP32 to run ROS2](#Setting-up-ESP32-to-run-ROS2)
@@ -20,6 +23,66 @@ ROS2 and OpenCV
 Mediapipe
 * [Enjoy Mechantronics Youtube Chanel: Hand Tracking with MediaPipe and OpenCV](https://www.youtube.com/watch?v=RRBXVu5UE-U)
 
+
+# Creating the Digit Meter 
+Start by creating a new ROS2 workspace for the digit meter and webcam handler
+
+```bash
+# Source the ROS 2 installation
+source /opt/ros/$ROS_DISTRO/setup.bash
+
+# Create a workspace and download the micro-ROS tools
+mkdir digit_ws
+cd digit_ws
+git clone https://github.com/ejhannigan/vision_based_digit_meter.git src/vision_based_digit_meter
+
+
+# Update dependencies using rosdep
+sudo apt update && rosdep update
+rosdep install --from-paths src --ignore-src -y
+
+# Install pip
+sudo apt-get install python3-pip
+
+# Build micro-ROS tools and source them
+colcon build
+source install/local_setup.bash
+```
+
+## Create a ROS2 webcam publisher
+This package is a simple package that uses openCV to read in the webcame video and publish frames at a set rate. I borrowed a lot of the code from [Automatic Addison's Blog](https://automaticaddison.com/getting-started-with-opencv-in-ros-2-foxy-fitzroy-python/).
+
+This node publishes to the topic `"/webcam_frame"`
+
+To start this publisher, open a new terminal or terminal tab. Remember to source ros: `source /opt/ros/$ROS_DISTRO/setup.bash`, then run:
+```
+ros2 run webcam_handler webcam_publisher
+```
+
+## Create a ROS2 digit to angle publisher
+This package creates a DigitPublisher node that subscribes to the `"/webcam_frame"`topic. It takes the image from webcam frame and uses mediapipe to detect [hand landmarks](https://ai.google.dev/edge/mediapipe/solutions/vision/hand_landmarker). 
+
+![image](https://github.com/user-attachments/assets/74d6702b-46cd-4821-9786-4afc8acca3a2)
+
+From these landmarks I use the following heuristics to determine if a finger is raised (see function in utils is_finger_raised):
+```
+finger_raised = (distance from finger_tip to finger_base)/(distance from finger_base to wrist) > .6
+```
+The thumb requires an additional heuristic because the thumb can be fully extended but not "raised" in a traditional counting manner. 
+We don't want to count the following position as "raised": ![image](https://github.com/user-attachments/assets/b1be56cc-feb5-40ed-8b0b-5c46b631a071)
+We only want to count ![image](https://github.com/user-attachments/assets/236e4793-02d8-41e7-9bf0-278614369792)
+So we need to add an extra condition. The position of the thumb_tip must be far away from both the index_tip and the pinky_tip.
+```
+thumb_raised only if all of the following are true:
+    (distance from thumb_tip to thumb_base)/(distance from thumb_base to wrist) > .6
+    (thumb_tip_to_pinky_tip_distance/base_to_wrist_distance) > 1
+    (thumb_tip_to_index_tip_distance/base_to_wrist_distance) > .5
+```
+For each "/webcam_frame" callback, I count the number of raised fingers. I compute the appropriate angle for the servo as 
+```
+angle = int((5-num_raised_finger)/5*180)
+```
+This angle is then published to the topic `"/microROS/int32_subscriber"` for the servo to read. Setting up the ESP32 and the servo ROS communication is done in the next section!
 
 # Setting up ESP32 to run ROS2:
 The hardware setup has its own [appendix](#hardware-setup).
@@ -94,9 +157,14 @@ containing the two files just described.
 
 ## Creating Custom App
 
-We need to create a custom app to run our servo. I followed a few different tutorials to aid in this process. 
-My app is called set_
+We need to create a custom app to run our servo. I closely followed [Mark Smith's Tutorial: Controlling Servos with ESP32 and ROS2](https://medium.com/@markjdsmith/getting-oriented-to-ros2-uros-and-controlling-servos-with-esp32-3b99533ac986) to create this app. This app creates a ROS2 subscriber to the `"/microROS/int32_subscriber"` topic. In the previous section, we sent the servo angle to this topic. 
 
+Then it uses espressif's motor control pwm library [mcpwm](https://docs.espressif.com/projects/esp-idf/en/v4.2/esp32/api-reference/peripherals/mcpwm.html#) to set GPIO18 as a pwm output and compute and set the correct duty cycle for the current commanded servo angle. 
+
+You already cloned this app when you created the digit_ws. We need to move it to the appropriate folder in the firmware. 
+```
+mv /path/to/digit_ws/src/vision_based_digit_meter/set_servo_angle /path/to/microros_ws/firmware/freertos_apps/apps
+```
 
 ## Configuring the firmware
 
@@ -209,11 +277,6 @@ ros2 topic pub -1 /microROS/int32_subscriber std_msgs/msg/Int32 'data: 180'
 
 We should see these messages on the first terminal and the motor should move. 
 
-# Create a ROS2 webcam publisher
-Use Webcam to Count Fingers on Your Hand -> Conver to Angle -> Publish to Servo ROS2 Node
-
-# Create a ROS2 digit to angle publisher
-Create a digit counter that reads in the webcam image and counts fingers using mediapipe
 
 
 
